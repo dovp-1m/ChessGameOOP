@@ -1,77 +1,60 @@
-import java.util.List;
-import java.util.ArrayList;
-
 public class ChessGame {
     private ChessBoard board;
-    private Boolean whiteTurn = true;
+    private boolean whiteTurn;
+    private Position selectedPosition;
+    private boolean gameOver;
 
     public ChessGame() {
-        this.board = new ChessBoard();
+        board = new ChessBoard();
+        whiteTurn = true;
+        gameOver = false;
     }
 
     public ChessBoard getBoard() {
-        return this.board;
+        return board;
     }
 
-    public void resetGame(){
-        this.board = new ChessBoard();
-        this.whiteTurn = true;
+    public boolean isGameOver() {
+        return gameOver;
     }
 
     public PieceColor getCurrentPlayerColor() {
         return whiteTurn ? PieceColor.WHITE : PieceColor.BLACK;
     }
 
-    private Position selectedPosition;
-
-    public boolean isPieceSelected() {
-        return selectedPosition != null;
+    public void resetGame() {
+        board = new ChessBoard();
+        whiteTurn = true;
+        selectedPosition = null;
+        gameOver = false;
     }
 
-    public boolean handleSquareSelection(int row, int col){
-        return false;
-    }
+    public boolean handleSquareSelection(int row, int col) {
+        if (gameOver) return false;
 
-    public boolean makeMove(Position start, Position end) {
-        return false;
-    }
+        Piece piece = board.getPiece(row, col);
+        if (selectedPosition == null) {
+            if (piece != null && piece.getColor() == getCurrentPlayerColor()) {
+                selectedPosition = new Position(row, col);
+                return false;
+            }
+        } else {
+            Position target = new Position(row, col);
+            Piece selectedPiece = board.getPiece(selectedPosition.getRow(), selectedPosition.getColumn());
+            Piece targetPiece = board.getPiece(target.getRow(), target.getColumn());
 
-    public boolean  isInCheck(PieceColor kingColor) {
-        return false;
-    }
+            if (selectedPiece != null && selectedPiece.isValidMove(target, board.getBoard())) {
+                if (targetPiece instanceof King) {
+                    gameOver = true;
+                }
 
-    private Position findKingPosition(PieceColor color) {
-        throw new RuntimeException("King not found.");
-    }
-
-    public boolean isCheckmate(PieceColor kingColor) {
-        if (!isInCheck(kingColor)) {
-            return false;
+                board.movePiece(selectedPosition, target);
+                whiteTurn = !whiteTurn;
+                selectedPosition = null;
+                return true;
+            }
+            selectedPosition = null;
         }
-        return true;
-    }
-
-    private boolean isPositionOnBoard(Position position) {
-        return position.getRow() >= 0 && position.getRow() < board.getBoard().length &&
-                position.getColumn() >= 0 && position.getColumn() < board.getBoard()[0].length;
-    }
-
-    private boolean wouldBeInCheckAfterMove(PieceColor kingColor, Position from, Position to) {
-        return inCheck;
-    }
-
-    public List<Position> getLegalMovesForPieceAt(Position position) {
-        return legalMoves;
-    }
-
-    private void addLineMoves(Position position, int[][] directions, List<Position> legalMoves) {
-    }
-
-    private void addSingleMoves(Position position, int[][] moves, List<Position> legalMoves){
-
-    }
-
-    private void addPawnMoves(Position position, PieceColor color, List<Position> legalMoves){
-
+        return false;
     }
 }

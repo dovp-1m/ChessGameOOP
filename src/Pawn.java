@@ -1,5 +1,3 @@
-import javax.swing.text.Position;
-
 public class Pawn extends Piece {
     public Pawn(PieceColor color, Position position) {
         super(color, position);
@@ -7,31 +5,29 @@ public class Pawn extends Piece {
 
     @Override
     public boolean isValidMove(Position newPosition, Piece[][] board) {
-        int forwardDirection = color == PieceColor.WHITE ? -1 : 1;
-        int rowDiff = (newPosition.getRow() - position.getRow()) * forwardDirection;
-        int colDiff = newPosition.getColumn() - position.getColumn();
+        int direction = (color == PieceColor.WHITE) ? -1 : 1;
+        int startRow = (color == PieceColor.WHITE) ? 6 : 1;
 
-        // Forward move
-        if (colDiff == 0 && rowDiff == 1 && board[newPosition.getRow()][newPosition.getColumn()] == null) {
-            return true; // Move forward one square
-        }
+        int rowDiff = newPosition.getRow() - position.getRow();
+        int colDiff = Math.abs(newPosition.getColumn() - position.getColumn());
 
-        // Initial two-square move
-        boolean isStartingPosition = (color == PieceColor.WHITE && position.getRow() == 6) ||
-                (color == PieceColor.BLACK && position.getRow() == 1);
-        if (colDiff == 0 && rowDiff == 2 && isStartingPosition
-                && board[newPosition.getRow()][newPosition.getColumn()] == null) {
-            // Check the square in between for blocking pieces
-            int middleRow = position.getRow() + forwardDirection;
-            if (board[middleRow][position.getColumn()] == null) {
-                return true; // Move forward two squares
+        // Standard move
+        if (colDiff == 0) {
+            if (rowDiff == direction && board[newPosition.getRow()][newPosition.getColumn()] == null) {
+                return true;
+            }
+            // Double move from start
+            if (position.getRow() == startRow && rowDiff == 2 * direction &&
+                    board[position.getRow() + direction][position.getColumn()] == null &&
+                    board[newPosition.getRow()][newPosition.getColumn()] == null) {
+                return true;
             }
         }
 
         // Diagonal capture
-        if (Math.abs(colDiff) == 1 && rowDiff == 1 && board[newPosition.getRow()][newPosition.getColumn()] != null &&
-                board[newPosition.getRow()][newPosition.getColumn()].color != this.color) {
-            return true; // Capture an opponent's piece
+        if (colDiff == 1 && rowDiff == direction) {
+            Piece target = board[newPosition.getRow()][newPosition.getColumn()];
+            return target != null && target.getColor() != color;
         }
 
         return false;
